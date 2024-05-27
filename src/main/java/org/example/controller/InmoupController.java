@@ -1,9 +1,12 @@
 package org.example.controller;
 
+import org.example.entities.InmoupProperty;
 import org.example.services.InmoupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/inmoup")
@@ -13,7 +16,7 @@ public class InmoupController {
     private InmoupService inmoupService;
 
     @GetMapping("/casas")
-    public ResponseEntity<String> getCasas(){
+    public ResponseEntity<List<InmoupProperty>> getCasas(){
         return ResponseEntity.ok().body(inmoupService.getCasas());
     }
     @GetMapping("/searchAmount/{value}")
