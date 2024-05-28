@@ -23,6 +23,14 @@ public class InmoupController {
     public ResponseEntity<List<InmoupProperty>> loadCasas(){
         return ResponseEntity.ok().body(inmoupService.loadCasas());
     }
+    @GetMapping("/news")
+    public ResponseEntity<List<InmoupProperty>> newCasas(){
+        return ResponseEntity.ok().body(inmoupService.getNews());
+    }
+    @GetMapping("/removeds")
+    public ResponseEntity<List<InmoupProperty>> removedsCasas(){
+        return ResponseEntity.ok().body(inmoupService.getRemoveds());
+    }
     @GetMapping("/searchAmount/{value}")
     public ResponseEntity<String> searchAmount(@PathVariable("value") long value){
         inmoupService.changeAmount(value);

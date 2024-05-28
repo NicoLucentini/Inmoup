@@ -41,6 +41,7 @@ public class InmoupProperty implements Serializable{
         public String usuario_id;
         public String nombre;
 
+
         public boolean isEqual(InmoupProperty other){
             return this.id.equals(other.id);
         }

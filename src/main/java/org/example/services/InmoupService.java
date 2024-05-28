@@ -11,8 +11,11 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.lang.Integer.valueOf;
 
@@ -26,6 +29,34 @@ public class InmoupService {
     public void changeAmount(long value) {
         searchValue = (int)value;
     }
+
+    public List<InmoupProperty> getNews(){
+       var old =  loadCasas();
+
+       var news = getCasas();
+
+       List<InmoupProperty> realNews = new ArrayList<>();
+
+       realNews = news.stream().filter(newProp-> old.stream().noneMatch(oldProp -> oldProp.isEqual(newProp)))
+               .collect(Collectors.toList());
+
+        return realNews;
+    }
+    public List<InmoupProperty> getRemoveds(){
+        var old =  loadCasas();
+
+        var news = getCasas();
+
+        news.remove(news.size() -1);
+
+        List<InmoupProperty> removeds = new ArrayList<>();
+
+        removeds = old.stream().filter(oldProp-> news.stream().noneMatch(newProp -> newProp.isEqual(oldProp)))
+                .collect(Collectors.toList());
+
+        return removeds;
+    }
+
     public List<InmoupProperty> loadCasas() {
         try
         {
@@ -89,10 +120,12 @@ public class InmoupService {
                     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                     .configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY,true)
                     .readValue(values, InmoupProperty[].class);
+
             System.out.println(props.length);
-            for(int i = 0; i< props.length;i++)
-                props[i].doUrl();
-            return Arrays.asList(props);
+
+            for (InmoupProperty prop : props) prop.doUrl();
+
+            return new LinkedList<>(Arrays.asList(props));
         }
         catch(Exception e){
             System.out.println(e.getMessage());
