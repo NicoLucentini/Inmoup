@@ -6,6 +6,11 @@ import org.example.entities.InmoupProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,10 +18,27 @@ import static java.lang.Integer.valueOf;
 
 @Service
 public class InmoupService {
-    private int searchValue = 10000;
+    private int searchValue = 100;
 
     private String CASAS_URL() {
         return "https://www.inmoup.com.ar/inmuebles/casas-en-venta?favoritos=0&limit=" + searchValue +"&prevEstadoMap=&q=Mendoza&lastZoom=13&precio%5Bmin%5D=&precio%5Bmax%5D=&moneda=1&sup_cubierta%5Bmin%5D=&sup_cubierta%5Bmax%5D=&sup_total%5Bmin%5D=&sup_total%5Bmax%5D=";
+    }
+    public void changeAmount(long value) {
+        searchValue = (int)value;
+    }
+    public List<InmoupProperty> loadCasas() {
+        try
+        {
+            String text = new String(Files.readAllBytes(Paths.get("Props.json")), StandardCharsets.UTF_8);
+            if(text.isEmpty() || text.isBlank() ) return Arrays.asList();
+
+            List<InmoupProperty> props = convertJsonToProperties(text);
+            return props;
+        }
+        catch (Exception e){
+            System.out.println("Could not load file => Probably doesn't exist");
+        }
+        return Arrays.asList();
     }
 
     public List<InmoupProperty> getCasas(){
@@ -25,15 +47,29 @@ public class InmoupService {
 
         String response = rest.getForObject(CASAS_URL(), String.class);
 
-        System.out.println("Checking url: "+ CASAS_URL()    );
+        System.out.println("Checking url: "+ CASAS_URL());
 
-        String finalString = getPropiedadesFromResponse(response);
+        String finalString = getPropertiesJsonFromPage(response);
         finalString = cleanJsonToMakeItArray(finalString, searchValue);
 
-        List<InmoupProperty> props = convertResponseToObject(finalString);
+        try {
+            //Text
+            PrintStream fileStream = new PrintStream(new File("Props.json"));
+
+            //Console
+            PrintStream console = System.out;
+
+            System.setOut(fileStream);
+            System.out.println(finalString);
+
+            System.setOut(console);
+        }catch (Exception e){}
+
+        List<InmoupProperty> props = convertJsonToProperties(finalString);
         return props;
 
     }
+
     private String cleanJsonToMakeItArray(String value, Integer amount){
         String newValue = value;
 
@@ -47,7 +83,7 @@ public class InmoupService {
         return newValue;
     }
 
-    private List<InmoupProperty> convertResponseToObject(String values){
+    private List<InmoupProperty> convertJsonToProperties(String values){
         try {
             InmoupProperty[] props = new ObjectMapper()
                     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -64,14 +100,12 @@ public class InmoupService {
         return Arrays.asList();
     }
 
-    private String getPropiedadesFromResponse(String response){
+    private String getPropertiesJsonFromPage(String response){
         var split = response.split("propiedades = ");
         var split2 = split[1].split("};");
-        return split2[0].concat("}").split("]")[0];
+        return  split2[0].concat("}");
     }
 
-    public void changeAmount(long value) {
-        searchValue = (int)value;
-        System.out.println(searchValue);
-    }
+
+
 }
