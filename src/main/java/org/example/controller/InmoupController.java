@@ -1,5 +1,6 @@
 package org.example.controller;
 
+import org.example.InmoupPropertyRepository;
 import org.example.entities.InmoupProperty;
 import org.example.services.InmoupService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +15,14 @@ public class InmoupController {
 
     @Autowired
     private InmoupService inmoupService;
+    @Autowired
+    private InmoupPropertyRepository repository;
 
-    @GetMapping("/casas")
-    public ResponseEntity<List<InmoupProperty>> getCasas(){
-        return ResponseEntity.ok().body(inmoupService.getCasas());
+    @GetMapping("/properties")
+    public ResponseEntity<List<InmoupProperty>> getProperties(){
+        var properties = inmoupService.getProperties();
+        repository.saveAll(properties);
+        return ResponseEntity.ok().body(properties);
     }
     @GetMapping("/load")
     public ResponseEntity<List<InmoupProperty>> loadCasas(){

@@ -11,7 +11,6 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,6 +25,9 @@ public class InmoupService {
     private String CASAS_URL() {
         return "https://www.inmoup.com.ar/inmuebles/casas-en-venta?favoritos=0&limit=" + searchValue + "&prevEstadoMap=&q=Mendoza&lastZoom=13&precio%5Bmin%5D=&precio%5Bmax%5D=&moneda=1&sup_cubierta%5Bmin%5D=&sup_cubierta%5Bmax%5D=&sup_total%5Bmin%5D=&sup_total%5Bmax%5D=";
     }
+    private String DEPARTAMENTOS_URL() {
+        return "https://www.inmoup.com.ar/inmuebles/departamentos-en-venta?favoritos=0&limit=" + searchValue + "&prevEstadoMap=&q=Mendoza&lastZoom=13&precio%5Bmin%5D=&precio%5Bmax%5D=&moneda=1&sup_cubierta%5Bmin%5D=&sup_cubierta%5Bmax%5D=&sup_total%5Bmin%5D=&sup_total%5Bmax%5D=";
+    }
 
     public void changeAmount(long value) {
         searchValue = (int) value;
@@ -34,7 +36,7 @@ public class InmoupService {
     public List<InmoupProperty> getNews() {
         var old = loadCasas();
 
-        var news = getCasas();
+        var news = getProperties();
 
         return news.stream().filter(newProp -> old.stream().noneMatch(oldProp -> oldProp.isEqual(newProp)))
                 .collect(Collectors.toList());
@@ -43,7 +45,7 @@ public class InmoupService {
     public List<InmoupProperty> getRemoveds() {
         var old = loadCasas();
 
-        var news = getCasas();
+        var news = getProperties();
         return old.stream().filter(oldProp -> news.stream().noneMatch(newProp -> newProp.isEqual(oldProp)))
                 .collect(Collectors.toList());
     }
@@ -61,13 +63,22 @@ public class InmoupService {
         return Arrays.asList();
     }
 
-    public List<InmoupProperty> getCasas() {
+
+    public List<InmoupProperty> getProperties(){
+        var casas = getCasas();
+        var dptos = getDepartamentos();
+
+        var response =casas;
+        response.addAll(dptos);
+        return response;
+    }
+    public List<InmoupProperty> getProperties(String url) {
 
         RestTemplate rest = new RestTemplate();
 
-        String response = rest.getForObject(CASAS_URL(), String.class);
+        String response = rest.getForObject(url, String.class);
 
-        System.out.println("Checking url: " + CASAS_URL());
+        System.out.println("Checking url: " + url);
 
         String finalString = getPropertiesJsonFromPage(response);
         finalString = cleanJsonToMakeItArray(finalString, searchValue);
@@ -126,6 +137,13 @@ public class InmoupService {
         var split = response.split("propiedades = ");
         var split2 = split[1].split("};");
         return split2[0].concat("}");
+    }
+
+    private List<InmoupProperty> getCasas(){
+        return getProperties(CASAS_URL());
+    }
+    private List<InmoupProperty> getDepartamentos(){
+        return getProperties(DEPARTAMENTOS_URL());
     }
 
 
