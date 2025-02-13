@@ -1,9 +1,6 @@
 package org.example;
 
 
-import org.example.entities.Gasto;
-import org.example.entities.GastoPorPersona;
-import org.example.entities.Grupo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
