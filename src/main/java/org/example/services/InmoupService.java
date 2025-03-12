@@ -17,14 +17,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.lang.Integer.valueOf;
 
 @Service
 public class InmoupService {
 
     private int searchValue = 100;
     boolean saveAsFile = false;
-
+    String pages = "";
 
 
     public void changeAmount(long value) {
@@ -61,7 +60,7 @@ public class InmoupService {
         return Arrays.asList();
     }
 
-    String pages = "";
+
     public List<InmoupProperty> getPropertiesWithFilter(String type, String location, Integer minPrice, Integer maxPrice, Integer page){
 
         var response = new ArrayList<InmoupProperty>();
