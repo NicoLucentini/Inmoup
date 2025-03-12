@@ -21,14 +21,11 @@ import static java.lang.Integer.valueOf;
 
 @Service
 public class InmoupService {
-    private int searchValue = 100;
 
-    private String CASAS_URL() {
-        return "https://www.inmoup.com.ar/inmuebles/casas-en-venta?favoritos=0&limit=" + searchValue + "&prevEstadoMap=&q=Mendoza&lastZoom=13&precio%5Bmin%5D=&precio%5Bmax%5D=&moneda=1&sup_cubierta%5Bmin%5D=&sup_cubierta%5Bmax%5D=&sup_total%5Bmin%5D=&sup_total%5Bmax%5D=";
-    }
-    private String DEPARTAMENTOS_URL() {
-        return "https://www.inmoup.com.ar/inmuebles/departamentos-en-venta?favoritos=0&limit=" + searchValue + "&prevEstadoMap=&q=Mendoza&lastZoom=13&precio%5Bmin%5D=&precio%5Bmax%5D=&moneda=1&sup_cubierta%5Bmin%5D=&sup_cubierta%5Bmax%5D=&sup_total%5Bmin%5D=&sup_total%5Bmax%5D=";
-    }
+    private int searchValue = 100;
+    boolean saveAsFile = false;
+
+
 
     public void changeAmount(long value) {
         searchValue = (int) value;
@@ -64,10 +61,11 @@ public class InmoupService {
         return Arrays.asList();
     }
 
-
-    public List<InmoupProperty> getPropertiesWithFilter(String type, String location, Integer minPrice, Integer maxPrice){
+    String pages = "";
+    public List<InmoupProperty> getPropertiesWithFilter(String type, String location, Integer minPrice, Integer maxPrice, Integer page){
 
         var response = new ArrayList<InmoupProperty>();
+        pages = page == null ? "" : "&page="+page;
 
         if(type==null){
             response.addAll(getCasas());
@@ -79,6 +77,7 @@ public class InmoupService {
         else if(type.equalsIgnoreCase("departamento")){
             response.addAll(getDepartamentos());
         }
+        System.out.println("Response ready");
         return response.stream()
                 .filter(p -> type == null || p.tip_desc.equalsIgnoreCase(type))
                 .filter(p -> location == null || p.loc_desc.equalsIgnoreCase(location))
@@ -89,24 +88,35 @@ public class InmoupService {
     }
 
     public List<InmoupProperty> getProperties(){
-        var casas = getCasas();
-        var dptos = getDepartamentos();
-
-        var response =casas;
-        response.addAll(dptos);
+        var response = new ArrayList<InmoupProperty>();
+        response.addAll(getCasas());
+        response.addAll(getDepartamentos());
+        System.out.println("Response ready");
         return response;
     }
     public List<InmoupProperty> getProperties(String url) {
 
         RestTemplate rest = new RestTemplate();
 
+        System.out.println("Checking url: " + url);
+
         String response = rest.getForObject(url, String.class);
 
-        System.out.println("Checking url: " + url);
+        System.out.println("Done Checking url: ");
+
 
         String finalString = getPropertiesJsonFromPage(response);
         finalString = cleanJsonToMakeItArray(finalString, searchValue);
 
+        if(saveAsFile)
+            saveAsFile(finalString);
+
+        List<InmoupProperty> props = convertJsonToProperties(finalString);
+        return props;
+
+    }
+
+    private void saveAsFile(String props){
         try {
             //Text
             PrintStream fileStream = new PrintStream(new File("Props.json"));
@@ -115,17 +125,12 @@ public class InmoupService {
             PrintStream console = System.out;
 
             System.setOut(fileStream);
-            System.out.println(finalString);
+            System.out.println(props);
 
             System.setOut(console);
         } catch (Exception e) {
         }
-
-        List<InmoupProperty> props = convertJsonToProperties(finalString);
-        return props;
-
     }
-
     private String cleanJsonToMakeItArray(String value, Integer amount) {
         String newValue = value;
 
@@ -167,11 +172,18 @@ public class InmoupService {
         return split2[0].concat("}");
     }
 
+
+    private String CASAS_URL() {
+        return "https://www.inmoup.com.ar/inmuebles/casas-en-venta?favoritos=0&limit=" + searchValue + "&prevEstadoMap=&q=Mendoza&lastZoom=13&precio%5Bmin%5D=&precio%5Bmax%5D=&moneda=1&sup_cubierta%5Bmin%5D=&sup_cubierta%5Bmax%5D=&sup_total%5Bmin%5D=&sup_total%5Bmax%5D=";
+    }
+    private String DEPARTAMENTOS_URL() {
+        return "https://www.inmoup.com.ar/inmuebles/departamentos-en-venta?favoritos=0&limit=" + searchValue + "&prevEstadoMap=&q=Mendoza&lastZoom=13&precio%5Bmin%5D=&precio%5Bmax%5D=&moneda=1&sup_cubierta%5Bmin%5D=&sup_cubierta%5Bmax%5D=&sup_total%5Bmin%5D=&sup_total%5Bmax%5D=";
+    }
     private List<InmoupProperty> getCasas(){
-        return getProperties(CASAS_URL());
+        return getProperties(CASAS_URL() + pages);
     }
     private List<InmoupProperty> getDepartamentos(){
-        return getProperties(DEPARTAMENTOS_URL());
+        return getProperties(DEPARTAMENTOS_URL() + pages);
     }
 
 

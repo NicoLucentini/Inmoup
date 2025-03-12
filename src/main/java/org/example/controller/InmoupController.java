@@ -29,8 +29,9 @@ public class InmoupController {
             @RequestParam(required = false, name = "tipo") String tipo,
             @RequestParam(required = false, name = "ubicacion") String ubicacion,
             @RequestParam(required = false, name = "minPrice") Integer minPrice,
-            @RequestParam(required = false, name = "maxPrice") Integer maxPrice){
-        var properties = inmoupService.getPropertiesWithFilter(tipo, ubicacion,minPrice,maxPrice);
+            @RequestParam(required = false, name = "maxPrice") Integer maxPrice,
+            @RequestParam(required = false, name = "page") Integer page){
+        var properties = inmoupService.getPropertiesWithFilter(tipo, ubicacion,minPrice,maxPrice, page);
         //repository.saveAll(properties);
         return ResponseEntity.ok().body(properties);
     }
