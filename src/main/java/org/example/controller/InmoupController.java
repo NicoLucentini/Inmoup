@@ -21,7 +21,17 @@ public class InmoupController {
     @GetMapping("/properties")
     public ResponseEntity<List<InmoupProperty>> getProperties(){
         var properties = inmoupService.getProperties();
-        repository.saveAll(properties);
+        //repository.saveAll(properties);
+        return ResponseEntity.ok().body(properties);
+    }
+    @GetMapping("/propertiesfilter")
+    public ResponseEntity<List<InmoupProperty>> getPropertiesWithFilter(
+            @RequestParam(required = false, name = "tipo") String tipo,
+            @RequestParam(required = false, name = "ubicacion") String ubicacion,
+            @RequestParam(required = false, name = "minPrice") Integer minPrice,
+            @RequestParam(required = false, name = "maxPrice") Integer maxPrice){
+        var properties = inmoupService.getPropertiesWithFilter(tipo, ubicacion,minPrice,maxPrice);
+        //repository.saveAll(properties);
         return ResponseEntity.ok().body(properties);
     }
     @GetMapping("/load")

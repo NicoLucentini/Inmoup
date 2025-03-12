@@ -18,6 +18,9 @@ public class InmoupProperty implements Serializable{
             String tipoCasa = (tip_desc + "-en-" + con_desc + "-en-" +prp_dom).replaceAll(" ", "-");
             url = "inmoup.com.ar/" + inmobiliaria + "/inmuebles/" + propiedad_id + "/ficha/" + tipoCasa + "?btid=" + id ;
         }
+        public void doMap(){
+                mapsLink = "https://www.google.com/maps?q=" + prp_lat + "," + prp_lng;
+        }
 
         @Id
         @Column(name = "id")
@@ -31,7 +34,7 @@ public class InmoupProperty implements Serializable{
         public String prp_dom;
         public Integer superficie_total;
         public Integer superficie_cubierta;
-
+        public String mapsLink;
         @Column(name = "precio_dolares")
         public Integer prp_pre_dol;
         public Integer oportunidad_dolares;
@@ -55,5 +58,22 @@ public class InmoupProperty implements Serializable{
 
         public boolean isEqual(InmoupProperty other){
             return this.id.equals(other.id);
+        }
+
+        public static String convertToDMS(double coordinate, boolean isLatitude) {
+                String direction;
+                if (isLatitude) {
+                        direction = (coordinate < 0) ? "S" : "N";
+                } else {
+                        direction = (coordinate < 0) ? "W" : "E";
+                }
+
+                double absCoord = Math.abs(coordinate);
+                int degrees = (int) absCoord; // Get whole degrees
+                double minutesDecimal = (absCoord - degrees) * 60; // Get decimal minutes
+                int minutes = (int) minutesDecimal; // Get whole minutes
+                double seconds = (minutesDecimal - minutes) * 60; // Get seconds
+
+                return String.format("%d°%d'%.1f\"%s", degrees, minutes, seconds, direction);
         }
 }

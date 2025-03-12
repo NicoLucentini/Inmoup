@@ -11,6 +11,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,6 +64,29 @@ public class InmoupService {
         return Arrays.asList();
     }
 
+
+    public List<InmoupProperty> getPropertiesWithFilter(String type, String location, Integer minPrice, Integer maxPrice){
+
+        var response = new ArrayList<InmoupProperty>();
+
+        if(type==null){
+            response.addAll(getCasas());
+            response.addAll(getDepartamentos());
+        }
+        else if(type.equalsIgnoreCase("casa")){
+            response.addAll(getCasas());
+        }
+        else if(type.equalsIgnoreCase("departamento")){
+            response.addAll(getDepartamentos());
+        }
+        return response.stream()
+                .filter(p -> type == null || p.tip_desc.equalsIgnoreCase(type))
+                .filter(p -> location == null || p.loc_desc.equalsIgnoreCase(location))
+                .filter(p -> minPrice == null || p.prp_pre_dol >= minPrice)
+                .filter(p -> maxPrice == null || p.prp_pre_dol <= maxPrice)
+                .collect(Collectors.toList());
+
+    }
 
     public List<InmoupProperty> getProperties(){
         var casas = getCasas();
@@ -124,7 +148,11 @@ public class InmoupService {
 
             System.out.println(props.length);
 
-            for (InmoupProperty prop : props) prop.doUrl();
+            for (InmoupProperty prop : props) {
+                prop.doUrl();
+                prop.doMap();
+            }
+
 
             return new LinkedList<>(Arrays.asList(props));
         } catch (Exception e) {
@@ -145,6 +173,7 @@ public class InmoupService {
     private List<InmoupProperty> getDepartamentos(){
         return getProperties(DEPARTAMENTOS_URL());
     }
+
 
 
 }
