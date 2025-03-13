@@ -30,7 +30,7 @@ public class InmoupService {
     }
 
     public List<InmoupProperty> getNews() {
-        var old = loadCasas();
+        var old = loadFile();
 
         var news = getProperties();
 
@@ -39,14 +39,14 @@ public class InmoupService {
     }
 
     public List<InmoupProperty> getRemoveds() {
-        var old = loadCasas();
+        var old = loadFile();
 
         var news = getProperties();
         return old.stream().filter(oldProp -> news.stream().noneMatch(newProp -> newProp.isEqual(oldProp)))
                 .collect(Collectors.toList());
     }
 
-    public List<InmoupProperty> loadCasas() {
+    public List<InmoupProperty> loadFile() {
         try {
             String text = new String(Files.readAllBytes(Paths.get("Props.json")), StandardCharsets.UTF_8);
             if (text.isEmpty() || text.isBlank()) return Arrays.asList();

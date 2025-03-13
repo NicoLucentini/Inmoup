@@ -1,7 +1,6 @@
 package org.example.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.InmoupPropertyRepository;
 import org.example.entities.InmoupProperty;
 import org.example.services.InmoupService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +20,6 @@ public class InmoupController {
 
     @Autowired
     private InmoupService inmoupService;
-    @Autowired
-    private InmoupPropertyRepository repository;
 
     @GetMapping("/properties")
     public ResponseEntity<List<InmoupProperty>> getProperties(){
@@ -38,7 +35,6 @@ public class InmoupController {
             @RequestParam(required = false, name = "maxPrice") Integer maxPrice,
             @RequestParam(required = false, name = "page") Integer page){
         var properties = inmoupService.getPropertiesWithFilter(tipo, ubicacion,minPrice,maxPrice, page);
-        //repository.saveAll(properties);
         return ResponseEntity.ok().body(properties);
     }
     @GetMapping("/properties-filter")
@@ -50,7 +46,6 @@ public class InmoupController {
             @RequestParam(required = false, name = "page") Integer page){
         long startTime = System.nanoTime();
         var properties = inmoupService.getPropertiesWithFilter(tipo, ubicacion,minPrice,maxPrice, page);
-        //repository.saveAll(properties);
         try {
 
             String date = LocalDate.now().toString();
@@ -65,11 +60,10 @@ public class InmoupController {
         catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
-
     }
     @GetMapping("/load")
     public ResponseEntity<List<InmoupProperty>> loadCasas(){
-        return ResponseEntity.ok().body(inmoupService.loadCasas());
+        return ResponseEntity.ok().body(inmoupService.loadFile());
     }
     @GetMapping("/news")
     public ResponseEntity<List<InmoupProperty>> newCasas(){
@@ -83,24 +77,6 @@ public class InmoupController {
     public ResponseEntity<String> searchAmount(@PathVariable("value") long value){
         inmoupService.changeAmount(value);
         return ResponseEntity.ok().body("Changed to "+ value);
-    }
-    @GetMapping("/download-json")
-    public ResponseEntity<ByteArrayResource> downloadJsonFile() throws Exception {
-        // Sample JSON data
-
-        var properties = inmoupService.getProperties();
-        // Convert Map to JSON string
-        ObjectMapper objectMapper = new ObjectMapper();
-        String jsonString = objectMapper.writeValueAsString(properties);
-
-        // Convert JSON string to bytes
-        byte[] jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
-        ByteArrayResource resource = new ByteArrayResource(jsonBytes);
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM) // Force download
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=data.json")
-                .body(resource);
     }
     private ResponseEntity<ByteArrayResource> convertToJson(List<InmoupProperty> properties, String fileName) throws Exception{
 

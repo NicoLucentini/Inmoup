@@ -1,17 +1,10 @@
 package org.example.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
-@Table(name = "Properties")
-@Entity
 public class InmoupProperty implements Serializable{
 
         public InmoupProperty(){}
@@ -38,8 +31,6 @@ public class InmoupProperty implements Serializable{
         }
         public Integer diasPublicada;
 
-        @Id
-        @Column(name = "id")
         public Long id;
         public Integer propiedad_id;
         public String url;
@@ -51,7 +42,6 @@ public class InmoupProperty implements Serializable{
         public Integer superficie_total;
         public Integer superficie_cubierta;
         public String mapsLink;
-        @Column(name = "precio_dolares")
         public Integer prp_pre_dol;
         public Integer oportunidad_dolares;
 
