@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Service
 public class InmoupService {
 
-    private int searchValue = 100;
+    private int searchValue = 500;
     private boolean saveAsFile = false;
     private String pages = "";
 
