@@ -13,10 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -101,12 +98,23 @@ public class InmoupService {
                 response.addAll(getProperties(CAMPOS_URL().concat(pages)));
             }
         }
-        System.out.println("Response ready Total: " + response.size() );
-        return response.stream()
+
+        System.out.println("Response ready without filter and clear Total: " + response.size() );
+        Set<Integer> seenIds = new HashSet<>();
+        List<InmoupProperty> cleared = new ArrayList<>();
+        List<InmoupProperty> props = response.stream()
                 .filter(p -> location == null || p.loc_desc.equalsIgnoreCase(location))
                 .filter(p -> minPrice == null || p.prp_pre_dol >= minPrice)
                 .filter(p -> maxPrice == null || p.prp_pre_dol <= maxPrice)
                 .collect(Collectors.toList());
+
+        for(InmoupProperty prop : props){
+            if (seenIds.add(prop.propiedad_id)) {  // `add()` returns false if id already exists
+               cleared.add(prop);
+            }
+        }
+        System.out.println("Response ready Total: " + cleared.size() );
+        return  cleared;
 
     }
     private List<InmoupProperty> searchLoop(String url){
