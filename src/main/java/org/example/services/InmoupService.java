@@ -181,10 +181,10 @@ public class InmoupService {
 
 
     private String CASAS_URL() {
-        return "https://www.inmoup.com.ar/inmuebles/casas-en-venta?favoritos=0&limit=" + searchValue;
+        return "https://www.inmoup.com.ar/inmuebles/casas-en-venta?provincia=Mendoza&limit=" + searchValue;
     }
     private String DEPARTAMENTOS_URL() {
-        return "https://www.inmoup.com.ar/inmuebles/departamentos-en-venta?favoritos=0&limit=" + searchValue;
+        return "https://www.inmoup.com.ar/inmuebles/departamentos-en-venta?provincia=Mendoza&limit=" + searchValue;
     }
     private String LOTES_URL(){
         return "https://inmoup.com.ar/inmuebles/lotes-y-terrenos-en-venta?provincia=Mendoza&limit=" + searchValue;
