@@ -71,6 +71,9 @@ public class InmoupService {
             response.addAll(getDepartamentos());
         }
         else if(type.equalsIgnoreCase("casa")){
+            var url = CASAS_URL()
+                    .concat(minPrice!= null ? precioMin(minPrice):"")
+                    .concat(maxPrice!=null ? precioMax(maxPrice) : "");
             response.addAll(getCasas());
         }
         else if(type.equalsIgnoreCase("departamento")){
@@ -155,6 +158,8 @@ public class InmoupService {
             for (InmoupProperty prop : props) {
                 prop.doUrl();
                 prop.doMap();
+                prop.doDiasPublicada();
+                prop.doLatLong();
             }
 
 
@@ -173,10 +178,13 @@ public class InmoupService {
 
 
     private String CASAS_URL() {
-        return "https://www.inmoup.com.ar/inmuebles/casas-en-venta?favoritos=0&limit=" + searchValue + "&prevEstadoMap=&q=Mendoza&lastZoom=13&precio%5Bmin%5D=&precio%5Bmax%5D=&moneda=1&sup_cubierta%5Bmin%5D=&sup_cubierta%5Bmax%5D=&sup_total%5Bmin%5D=&sup_total%5Bmax%5D=";
+        return "https://www.inmoup.com.ar/inmuebles/casas-en-venta?favoritos=0&limit=" + searchValue;
     }
     private String DEPARTAMENTOS_URL() {
-        return "https://www.inmoup.com.ar/inmuebles/departamentos-en-venta?favoritos=0&limit=" + searchValue + "&prevEstadoMap=&q=Mendoza&lastZoom=13&precio%5Bmin%5D=&precio%5Bmax%5D=&moneda=1&sup_cubierta%5Bmin%5D=&sup_cubierta%5Bmax%5D=&sup_total%5Bmin%5D=&sup_total%5Bmax%5D=";
+        return "https://www.inmoup.com.ar/inmuebles/departamentos-en-venta?favoritos=0&limit=" + searchValue;
+    }
+    private String LOTES_URL(){
+        return "https://inmoup.com.ar/inmuebles/lotes-y-terrenos-en-venta?provincia=Mendoza&limit=" + searchValue;
     }
     private List<InmoupProperty> getCasas(){
         return getProperties(CASAS_URL() + pages);
@@ -184,7 +192,21 @@ public class InmoupService {
     private List<InmoupProperty> getDepartamentos(){
         return getProperties(DEPARTAMENTOS_URL() + pages);
     }
-
+    private String precioMin(int value){
+        return "&precio%5Bmin%5D=" +value;
+    }
+    private String precioMax(int value){
+        return "&precio%5Bmax%5D=" +value;
+    }
+    private String moneda(int value){
+        return "&moneda=2";
+    }
+    private String limit(int value){
+        return "&limit="+value;
+    }
+    private String pages(int value){
+        return "&page="+value;
+    }
 
 
 }

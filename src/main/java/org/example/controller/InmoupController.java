@@ -1,12 +1,18 @@
 package org.example.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.InmoupPropertyRepository;
 import org.example.entities.InmoupProperty;
 import org.example.services.InmoupService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -35,6 +41,25 @@ public class InmoupController {
         //repository.saveAll(properties);
         return ResponseEntity.ok().body(properties);
     }
+    @GetMapping("/properties-filter")
+    public ResponseEntity<ByteArrayResource> getPropertiesWithFilterJson(
+            @RequestParam(required = false, name = "tipo") String tipo,
+            @RequestParam(required = false, name = "ubicacion") String ubicacion,
+            @RequestParam(required = false, name = "minPrice") Integer minPrice,
+            @RequestParam(required = false, name = "maxPrice") Integer maxPrice,
+            @RequestParam(required = false, name = "page") Integer page){
+        var properties = inmoupService.getPropertiesWithFilter(tipo, ubicacion,minPrice,maxPrice, page);
+        //repository.saveAll(properties);
+        try {
+            String date = LocalDate.now().toString();
+            String pageS = page != null ? "-page" + page : "";
+            return convertToJson(properties, "properties" + date + pageS);
+        }
+        catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+
+    }
     @GetMapping("/load")
     public ResponseEntity<List<InmoupProperty>> loadCasas(){
         return ResponseEntity.ok().body(inmoupService.loadCasas());
@@ -51,5 +76,37 @@ public class InmoupController {
     public ResponseEntity<String> searchAmount(@PathVariable("value") long value){
         inmoupService.changeAmount(value);
         return ResponseEntity.ok().body("Changed to "+ value);
+    }
+    @GetMapping("/download-json")
+    public ResponseEntity<ByteArrayResource> downloadJsonFile() throws Exception {
+        // Sample JSON data
+
+        var properties = inmoupService.getProperties();
+        // Convert Map to JSON string
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonString = objectMapper.writeValueAsString(properties);
+
+        // Convert JSON string to bytes
+        byte[] jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
+        ByteArrayResource resource = new ByteArrayResource(jsonBytes);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM) // Force download
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=data.json")
+                .body(resource);
+    }
+    private ResponseEntity<ByteArrayResource> convertToJson(List<InmoupProperty> properties, String fileName) throws Exception{
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonString = objectMapper.writeValueAsString(properties);
+
+        // Convert JSON string to bytes
+        byte[] jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
+        ByteArrayResource resource = new ByteArrayResource(jsonBytes);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM) // Force download
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+fileName+".json")
+                .body(resource);
     }
 }

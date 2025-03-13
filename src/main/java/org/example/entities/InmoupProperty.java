@@ -6,13 +6,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 @Table(name = "Properties")
 @Entity
 public class InmoupProperty implements Serializable{
 
         public InmoupProperty(){}
-
+        public String latLong;
         public void doUrl(){
             String inmobiliaria = (usuario_id + "-"+nombre).replaceAll(" ", "-");
             String tipoCasa = (tip_desc + "-en-" + con_desc + "-en-" +prp_dom).replaceAll(" ", "-");
@@ -21,6 +24,17 @@ public class InmoupProperty implements Serializable{
         public void doMap(){
                 mapsLink = "https://www.google.com/maps?q=" + prp_lat + "," + prp_lng;
         }
+        public void doLatLong(){
+                latLong = prp_lat != null ? prp_lat : "" + "," + prp_lng != null ? prp_lng : "";
+        }
+        public void doDiasPublicada(){
+                LocalDate localDate = LocalDate.now();
+                String date = prp_alta != null ? prp_alta.split(" ")[0] : localDate.toString();
+                LocalDate propDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+                diasPublicada = Math.abs((int)ChronoUnit.DAYS.between(localDate, propDate));
+        }
+        public Integer diasPublicada;
 
         @Id
         @Column(name = "id")
