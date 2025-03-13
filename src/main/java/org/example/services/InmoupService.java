@@ -3,6 +3,7 @@ package org.example.services;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.entities.InmoupProperty;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -11,6 +12,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -22,8 +24,8 @@ import java.util.stream.Collectors;
 public class InmoupService {
 
     private int searchValue = 100;
-    boolean saveAsFile = false;
-    String pages = "";
+    private boolean saveAsFile = false;
+    private String pages = "";
 
 
     public void changeAmount(long value) {
@@ -66,23 +68,40 @@ public class InmoupService {
         var response = new ArrayList<InmoupProperty>();
         pages = page == null ? "" : "&page="+page;
 
+        //VER QUE HACER CON ESTO
         if(type==null){
             response.addAll(getCasas());
             response.addAll(getDepartamentos());
         }
         else if(type.equalsIgnoreCase("casa")){
-            var url = CASAS_URL()
-                    .concat(minPrice!= null ? precioMin(minPrice):"")
-                    .concat(maxPrice!=null ? precioMax(maxPrice) : "");
-            response.addAll(getCasas());
+            if(page==null)
+                response.addAll(searchLoop(CASAS_URL()));
+            else
+                response.addAll(getProperties(CASAS_URL().concat(pages)));
         }
         else if(type.equalsIgnoreCase("departamento")){
-            response.addAll(getDepartamentos());
+            if(page==null)
+                response.addAll(searchLoop(DEPARTAMENTOS_URL()));
+            else
+                response.addAll(getProperties(DEPARTAMENTOS_URL().concat(pages)));
         }
         else if(type.equalsIgnoreCase("lote")){
-            response.addAll(getProperties(LOTES_URL()));
+            if(page==null)
+                response.addAll(searchLoop(LOTES_URL()));
+            else
+                response.addAll(getProperties(LOTES_URL().concat(pages)));
         }
-        System.out.println("Response ready");
+        else if(type.equalsIgnoreCase("finca")){
+            if(page==null){
+                response.addAll(searchLoop(FINCAS_URL()));
+                response.addAll(searchLoop(CAMPOS_URL().concat(pages)));
+            }
+            else{
+                response.addAll(getProperties(FINCAS_URL()));
+                response.addAll(getProperties(CAMPOS_URL().concat(pages)));
+            }
+        }
+        System.out.println("Response ready Total: " + response.size() );
         return response.stream()
                 .filter(p -> type == null || p.tip_desc.equalsIgnoreCase(type))
                 .filter(p -> location == null || p.loc_desc.equalsIgnoreCase(location))
@@ -91,7 +110,20 @@ public class InmoupService {
                 .collect(Collectors.toList());
 
     }
-
+    private List<InmoupProperty> searchLoop(String url){
+        var response = new ArrayList<InmoupProperty>();
+        int restantes =99;
+        int pag = 1;
+        response.addAll(getProperties(url));
+        while(restantes>0){
+            pages = "&page="+pag;
+            List<InmoupProperty> props = getProperties(url + pages);
+            restantes = props.size();
+            response.addAll(props);
+            pag++;
+        }
+        return response;
+    }
     public List<InmoupProperty> getProperties(){
         var response = new ArrayList<InmoupProperty>();
         response.addAll(getCasas());
@@ -99,16 +131,18 @@ public class InmoupService {
         System.out.println("Response ready");
         return response;
     }
+
+
     public List<InmoupProperty> getProperties(String url) {
 
-        RestTemplate rest = new RestTemplate();
+        RestTemplateBuilder rtb = new RestTemplateBuilder();
+        RestTemplate r = rtb.setConnectTimeout(Duration.ofSeconds(360)).setReadTimeout(Duration.ofSeconds(360)).build();
 
         System.out.println("Checking url: " + url);
 
-        String response = rest.getForObject(url, String.class);
+        String response = r.getForObject(url, String.class);
 
-        System.out.println("Done Checking url: ");
-
+        System.out.println("Done Checking url: "+ url);
 
         String finalString = getPropertiesJsonFromPage(response);
         finalString = cleanJsonToMakeItArray(finalString, searchValue);
@@ -116,9 +150,7 @@ public class InmoupService {
         if(saveAsFile)
             saveAsFile(finalString);
 
-        List<InmoupProperty> props = convertJsonToProperties(finalString);
-        return props;
-
+        return convertJsonToProperties(finalString);
     }
 
     private void saveAsFile(String props){
@@ -130,10 +162,12 @@ public class InmoupService {
             PrintStream console = System.out;
 
             System.setOut(fileStream);
+
             System.out.println(props);
 
             System.setOut(console);
         } catch (Exception e) {
+            System.out.println("Exception catched during save file ");
         }
     }
     private String cleanJsonToMakeItArray(String value, Integer amount) {
@@ -165,7 +199,6 @@ public class InmoupService {
                 prop.doLatLong();
             }
 
-
             return new LinkedList<>(Arrays.asList(props));
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -181,13 +214,24 @@ public class InmoupService {
 
 
     private String CASAS_URL() {
-        return "https://www.inmoup.com.ar/inmuebles/casas-en-venta?provincia=Mendoza&limit=" + searchValue;
+        //return "https://www.inmoup.com.ar/inmuebles/casas-en-venta?limit=" + searchValue;
+        return "https://www.inmoup.com.ar/inmuebles/casas-en-venta?q=Mendoza&limit=" + searchValue;
     }
     private String DEPARTAMENTOS_URL() {
-        return "https://www.inmoup.com.ar/inmuebles/departamentos-en-venta?provincia=Mendoza&limit=" + searchValue;
+        //return "https://www.inmoup.com.ar/inmuebles/departamentos-en-venta?limit=" + searchValue;
+        return "https://www.inmoup.com.ar/inmuebles/departamentos-en-venta?q=Mendoza&limit=" + searchValue;
     }
     private String LOTES_URL(){
-        return "https://inmoup.com.ar/inmuebles/lotes-y-terrenos-en-venta?provincia=Mendoza&limit=" + searchValue;
+        //return "https://inmoup.com.ar/inmuebles/lotes-y-terrenos-en-venta?limit=" + searchValue;
+        return "https://inmoup.com.ar/inmuebles/lotes-y-terrenos-en-venta?q=Mendoza&limit=" + searchValue;
+    }
+    private String FINCAS_URL(){
+        //return "https://inmoup.com.ar/inmuebles/lotes-y-terrenos-en-venta?limit=" + searchValue;
+        return "https://inmoup.com.ar/inmuebles/bodegas-y-fincas-en-venta?q=Mendoza&limit=" + searchValue;
+    }
+    private String CAMPOS_URL(){
+        //return "https://inmoup.com.ar/inmuebles/lotes-y-terrenos-en-venta?limit=" + searchValue;
+        return "https://inmoup.com.ar/inmuebles/campos-y-vinedos-en-venta?q=Mendoza&limit=" + searchValue;
     }
     private List<InmoupProperty> getCasas(){
         return getProperties(CASAS_URL() + pages);
