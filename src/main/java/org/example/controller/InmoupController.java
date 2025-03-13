@@ -48,12 +48,19 @@ public class InmoupController {
             @RequestParam(required = false, name = "minPrice") Integer minPrice,
             @RequestParam(required = false, name = "maxPrice") Integer maxPrice,
             @RequestParam(required = false, name = "page") Integer page){
+        long startTime = System.nanoTime();
         var properties = inmoupService.getPropertiesWithFilter(tipo, ubicacion,minPrice,maxPrice, page);
         //repository.saveAll(properties);
         try {
+
             String date = LocalDate.now().toString();
             String pageS = page != null ? "-page" + page : "";
-            return convertToJson(properties, "properties" + date + pageS);
+            ResponseEntity<ByteArrayResource> res = convertToJson(properties, "properties" + date + pageS);
+            long endTime = System.nanoTime();
+            long duration = endTime - startTime;
+            double durationMs = duration / 1_000_000.0;
+            System.out.println("Time elapsed: " + durationMs + " ms");
+            return res;
         }
         catch (Exception e){
             return ResponseEntity.badRequest().build();

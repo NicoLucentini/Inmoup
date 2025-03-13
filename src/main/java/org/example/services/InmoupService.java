@@ -103,7 +103,6 @@ public class InmoupService {
         }
         System.out.println("Response ready Total: " + response.size() );
         return response.stream()
-                .filter(p -> type == null || p.tip_desc.equalsIgnoreCase(type))
                 .filter(p -> location == null || p.loc_desc.equalsIgnoreCase(location))
                 .filter(p -> minPrice == null || p.prp_pre_dol >= minPrice)
                 .filter(p -> maxPrice == null || p.prp_pre_dol <= maxPrice)
