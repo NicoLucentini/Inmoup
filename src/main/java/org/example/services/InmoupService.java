@@ -79,6 +79,9 @@ public class InmoupService {
         else if(type.equalsIgnoreCase("departamento")){
             response.addAll(getDepartamentos());
         }
+        else if(type.equalsIgnoreCase("lote")){
+            response.addAll(getProperties(LOTES_URL()));
+        }
         System.out.println("Response ready");
         return response.stream()
                 .filter(p -> type == null || p.tip_desc.equalsIgnoreCase(type))

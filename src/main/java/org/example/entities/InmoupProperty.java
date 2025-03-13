@@ -25,7 +25,9 @@ public class InmoupProperty implements Serializable{
                 mapsLink = "https://www.google.com/maps?q=" + prp_lat + "," + prp_lng;
         }
         public void doLatLong(){
-                latLong = prp_lat != null ? prp_lat : "" + "," + prp_lng != null ? prp_lng : "";
+                String lat = prp_lat != null ? prp_lat : "";
+                String lng = prp_lng != null ? prp_lng : "";
+                latLong = lat + "," +lng;
         }
         public void doDiasPublicada(){
                 LocalDate localDate = LocalDate.now();
