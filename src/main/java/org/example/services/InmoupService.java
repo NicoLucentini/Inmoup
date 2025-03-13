@@ -6,8 +6,10 @@ import org.example.entities.InmoupProperty;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -91,10 +93,10 @@ public class InmoupService {
         else if(type.equalsIgnoreCase("finca")){
             if(page==null){
                 response.addAll(searchLoop(FINCAS_URL()));
-                response.addAll(searchLoop(CAMPOS_URL().concat(pages)));
+                response.addAll(searchLoop(CAMPOS_URL()));
             }
             else{
-                response.addAll(getProperties(FINCAS_URL()));
+                response.addAll(getProperties(FINCAS_URL().concat(pages)));
                 response.addAll(getProperties(CAMPOS_URL().concat(pages)));
             }
         }
@@ -188,6 +190,15 @@ public class InmoupService {
 
         newValue = "[" + newValue + "]";
         return newValue;
+    }
+    public List<InmoupProperty> compareToFiles(MultipartFile oldFile, MultipartFile newFile) throws IOException {
+        String oldString = new String(oldFile.getBytes(), StandardCharsets.UTF_8);
+        String newString = new String(newFile.getBytes(), StandardCharsets.UTF_8);
+        List<InmoupProperty> oldProperties = convertJsonToProperties(oldString);
+        List<InmoupProperty> newProperties = convertJsonToProperties(newString);
+
+        return oldProperties.stream().filter(oldProp -> newProperties.stream().noneMatch(newProp -> newProp.isEqual(oldProp)))
+                .collect(Collectors.toList());
     }
 
     private List<InmoupProperty> convertJsonToProperties(String values) {

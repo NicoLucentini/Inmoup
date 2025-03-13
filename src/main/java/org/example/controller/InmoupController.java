@@ -9,7 +9,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
@@ -60,6 +62,21 @@ public class InmoupController {
         catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
+    }
+    @PostMapping("/compare")
+    public ResponseEntity<List<InmoupProperty>> compare(@RequestParam("old-file") MultipartFile oldFile,
+                                                          @RequestParam("new-file") MultipartFile newFile) throws IOException {
+
+        return ResponseEntity.ok().body(inmoupService.compareToFiles(oldFile, newFile));
+    }
+    @PostMapping("/compare-json")
+    public ResponseEntity<ByteArrayResource> compareJson(@RequestParam("old-file") MultipartFile oldFile,
+                                                        @RequestParam("new-file") MultipartFile newFile) throws Exception {
+
+        List<InmoupProperty> props = inmoupService.compareToFiles(oldFile, newFile);
+        String oldFileName =  oldFile.getOriginalFilename().replaceAll(".json","");
+        String newFileName =  newFile.getOriginalFilename().replaceAll(".json","");
+        return convertToJson(props,"Eliminadas-"+oldFileName+"-"+newFileName);
     }
     @GetMapping("/load")
     public ResponseEntity<List<InmoupProperty>> loadCasas(){
