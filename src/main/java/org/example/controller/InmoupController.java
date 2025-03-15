@@ -63,21 +63,22 @@ public class InmoupController {
             return ResponseEntity.badRequest().build();
         }
     }
-    @PostMapping("/compare")
+    @PostMapping("/merge")
     public ResponseEntity<List<InmoupProperty>> compare(@RequestParam("old-file") MultipartFile oldFile,
                                                           @RequestParam("new-file") MultipartFile newFile) throws IOException {
 
-        return ResponseEntity.ok().body(inmoupService.compareToFiles(oldFile, newFile));
+        return ResponseEntity.ok().body(inmoupService.mergeFiles(oldFile, newFile));
     }
-    @PostMapping("/compare-json")
+    @PostMapping("/merge-json")
     public ResponseEntity<ByteArrayResource> compareJson(@RequestParam("old-file") MultipartFile oldFile,
                                                         @RequestParam("new-file") MultipartFile newFile) throws Exception {
 
-        List<InmoupProperty> props = inmoupService.compareToFiles(oldFile, newFile);
+        List<InmoupProperty> props = inmoupService.mergeFiles(oldFile, newFile);
         String oldFileName =  oldFile.getOriginalFilename().replaceAll(".json","");
         String newFileName =  newFile.getOriginalFilename().replaceAll(".json","");
         return convertToJson(props,"Eliminadas-"+oldFileName+"-"+newFileName);
     }
+
     @GetMapping("/load")
     public ResponseEntity<List<InmoupProperty>> loadCasas(){
         return ResponseEntity.ok().body(inmoupService.loadFile());

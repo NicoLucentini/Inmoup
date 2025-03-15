@@ -191,6 +191,7 @@ public class InmoupService {
         newValue = "[" + newValue + "]";
         return newValue;
     }
+
     public List<InmoupProperty> compareToFiles(MultipartFile oldFile, MultipartFile newFile) throws IOException {
         String oldString = new String(oldFile.getBytes(), StandardCharsets.UTF_8);
         String newString = new String(newFile.getBytes(), StandardCharsets.UTF_8);
@@ -199,6 +200,15 @@ public class InmoupService {
 
         return oldProperties.stream().filter(oldProp -> newProperties.stream().noneMatch(newProp -> newProp.isEqual(oldProp)))
                 .collect(Collectors.toList());
+    }
+    public List<InmoupProperty> mergeFiles(MultipartFile oldFile, MultipartFile newFile) throws IOException {
+        String oldString = new String(oldFile.getBytes(), StandardCharsets.UTF_8);
+        String newString = new String(newFile.getBytes(), StandardCharsets.UTF_8);
+        List<InmoupProperty> oldProperties = convertJsonToProperties(oldString);
+        List<InmoupProperty> newProperties = convertJsonToProperties(newString);
+
+        oldProperties.addAll(newProperties);
+        return oldProperties;
     }
 
     private List<InmoupProperty> convertJsonToProperties(String values) {
@@ -272,6 +282,7 @@ public class InmoupService {
     private String pages(int value){
         return "&page="+value;
     }
+
 
 
 }
