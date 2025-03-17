@@ -27,5 +27,10 @@ public class MainController {
         System.out.println(maxHeap);
         return ResponseEntity.ok(heap + " | " + maxHeap);
     }
+    @GetMapping("/gc")
+    public ResponseEntity<String> gc(){
+        System.gc();
+        return ResponseEntity.ok("Garbage collector");
+    }
 
 }
