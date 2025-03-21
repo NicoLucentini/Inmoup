@@ -48,7 +48,7 @@ public class InmoupProperty implements Serializable{
         public String agua;
         public String luz;
         public String gas;
-        public String baños;
+        public String    banos;
         public String cochera;
         public String dormitorios;
 

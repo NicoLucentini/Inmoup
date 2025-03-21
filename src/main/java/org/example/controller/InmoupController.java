@@ -1,7 +1,7 @@
 package org.example.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.entities.InmoupProperty;
+import org.example.helpers.InmoupHelper;
 import org.example.services.InmoupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -50,14 +49,20 @@ public class InmoupController {
         var properties = inmoupService.getPropertiesWithFilter(tipo, ubicacion,minPrice,maxPrice, page);
         try {
 
+            ByteArrayResource resource = InmoupHelper.convertToJson(properties);
             String date = LocalDate.now().toString();
             String pageS = page != null ? "-page" + page : "";
-            ResponseEntity<ByteArrayResource> res = convertToJson(properties, "properties" + date + pageS);
+
             long endTime = System.nanoTime();
             long duration = endTime - startTime;
             double durationMs = duration / 1_000_000.0;
             System.out.println("Time elapsed: " + durationMs + " ms");
-            return res;
+
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM) // Force download
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+"properties" + date + pageS+".json")
+                    .body(resource);
         }
         catch (Exception e){
             return ResponseEntity.badRequest().build();
@@ -76,7 +81,13 @@ public class InmoupController {
         List<InmoupProperty> props = inmoupService.mergeFiles(oldFile, newFile);
         String oldFileName =  oldFile.getOriginalFilename().replaceAll(".json","");
         String newFileName =  newFile.getOriginalFilename().replaceAll(".json","");
-        return convertToJson(props,"Eliminadas-"+oldFileName+"-"+newFileName);
+
+        ByteArrayResource resource = InmoupHelper.convertToJson(props);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM) // Force download
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+"Eliminadas-"+oldFileName+"-"+newFileName+".json")
+                .body(resource);
     }
     @PostMapping("/compare")
     public ResponseEntity<List<InmoupProperty>> compare(@RequestParam("old-file") MultipartFile oldFile,
@@ -91,7 +102,13 @@ public class InmoupController {
         List<InmoupProperty> props = inmoupService.compareToFiles(oldFile, newFile);
         String oldFileName =  oldFile.getOriginalFilename().replaceAll(".json","");
         String newFileName =  newFile.getOriginalFilename().replaceAll(".json","");
-        return convertToJson(props,"Eliminadas-"+oldFileName+"-"+newFileName);
+
+        ByteArrayResource resource = InmoupHelper.convertToJson(props);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM) // Force download
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+"Eliminadas-"+oldFileName+"-"+newFileName+".json")
+                .body(resource);
     }
 
     @GetMapping("/load")
@@ -111,18 +128,5 @@ public class InmoupController {
         inmoupService.changeAmount(value);
         return ResponseEntity.ok().body("Changed to "+ value);
     }
-    private ResponseEntity<ByteArrayResource> convertToJson(List<InmoupProperty> properties, String fileName) throws Exception{
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        String jsonString = objectMapper.writeValueAsString(properties);
-
-        // Convert JSON string to bytes
-        byte[] jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
-        ByteArrayResource resource = new ByteArrayResource(jsonBytes);
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM) // Force download
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+fileName+".json")
-                .body(resource);
-    }
 }
