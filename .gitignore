@@ -5,7 +5,8 @@ target/maven-archiver
 target/maven-status
 target/test-classes
 target/surefire-reports
-.env
+
+*.env
 
 # Compiled class file
 *.class
