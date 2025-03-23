@@ -1,9 +1,11 @@
 package org.example.services;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +15,14 @@ public class EmailService {
 
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
+
+        long maxHeapSize = Runtime.getRuntime().maxMemory() / (1024 * 1024);
+        Dotenv dotenv = Dotenv.load();
+
+        // Get the MAIL_PASSWORD from the environment variables
+        String mailPassword = dotenv.get("MAIL_PASSWORD");
+        JavaMailSenderImpl javaMailSenderImpl = (JavaMailSenderImpl) mailSender;
+        javaMailSenderImpl.setPassword(mailPassword);
     }
 
     public void sendEmail(String to, String subject, String body) {
